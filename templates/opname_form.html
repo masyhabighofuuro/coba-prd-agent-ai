@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Opname Baru{% endblock %}
+{% block bottom_nav %}{% endblock %}
+{% block content %}
+{% set f = form if form else {} %}
+<h1 class="h4 mb-3">Stock Opname Baru</h1>
+<div class="alert alert-light border small">
+  Isi <strong>stok fisik</strong> hasil hitung di gudang. Barang yang dikosongkan dianggap tidak dicek.
+  Jika ada selisih, <strong>stok sistem akan disesuaikan</strong> dan keterangan wajib diisi.
+</div>
+
+<form method="post" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <label for="tanggal" class="form-label">Tanggal <span class="text-danger">*</span></label>
+      <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ f.get('tanggal', today) }}" required>
+    </div>
+    <div class="col-md-3">
+      <label for="petugas" class="form-label">Petugas <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" id="petugas" name="petugas" value="{{ f.get('petugas', '') }}" required>
+    </div>
+    <div class="col-md-6">
+      <label for="catatan" class="form-label">Catatan</label>
+      <input type="text" class="form-control" id="catatan" name="catatan" value="{{ f.get('catatan', '') }}">
+    </div>
+  </div>
+
+  <label for="filterOpname" class="form-label">Filter barang</label>
+  <input type="search" id="filterOpname" class="form-control mb-2" placeholder="Cari nama / kode barang...">
+
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-sm mb-0 align-middle app-opname-table" id="tabelOpname">
+        <thead class="table-light">
+          <tr><th>Barang</th><th class="text-end">Stok Sistem</th><th style="width:130px">Stok Fisik</th>
+              <th class="text-end">Selisih</th><th>Keterangan (wajib bila selisih)</th></tr>
+        </thead>
+        <tbody>
+          {% for i in items %}
+          <tr data-cari="{{ (i.sku ~ ' ' ~ i.nama ~ ' ' ~ (i.varian or ''))|lower }}">
+            <td class="app-opname-nama">
+              {{ i.nama }}{% if i.varian %} ({{ i.varian }}){% endif %}
+              <span class="text-muted small d-block">{{ i.sku }}</span>
+            </td>
+            <td class="text-end" data-label="Stok Sistem">
+              {{ i.stok|angka }} {{ i.satuan }}
+              <input type="hidden" name="sistem_{{ i.id }}" value="{{ i.stok }}">
+            </td>
+            <td data-label="Stok Fisik">
+              <input type="number" inputmode="numeric" min="0" class="form-control form-control-sm fisik" name="fisik_{{ i.id }}"
+                     data-sistem="{{ i.stok }}" value="{{ f.get('fisik_' ~ i.id, '') }}">
+            </td>
+            <td class="text-end selisih text-muted" data-label="Selisih">-</td>
+            <td data-label="Keterangan">
+              <input type="text" class="form-control form-control-sm" name="ket_{{ i.id }}"
+                     value="{{ f.get('ket_' ~ i.id, '') }}" placeholder="Mis. rusak / hilang / retur">
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="app-form-actions">
+    <button type="submit" class="btn btn-primary">Simpan Opname</button>
+    <a href="{{ url_for('opname_list') }}" class="btn btn-outline-secondary">Batal</a>
+  </div>
+  <div class="app-actions-spacer" aria-hidden="true"></div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function hitungSelisih(input) {
+    var sel = input.closest('tr').querySelector('.selisih');
+    if (input.value === '') { sel.textContent = '-'; sel.className = 'text-end selisih text-muted'; return; }
+    var d = parseInt(input.value, 10) - parseInt(input.dataset.sistem, 10);
+    sel.textContent = (d > 0 ? '+' : '') + d;
+    sel.className = 'text-end selisih ' + (d < 0 ? 'text-danger' : (d > 0 ? 'text-success' : 'text-muted'));
+  }
+  document.querySelectorAll('input.fisik').forEach(function (el) {
+    el.addEventListener('input', function () { hitungSelisih(el); });
+    hitungSelisih(el);
+  });
+  document.getElementById('filterOpname').addEventListener('input', function (e) {
+    var q = e.target.value.toLowerCase();
+    document.querySelectorAll('#tabelOpname tbody tr').forEach(function (tr) {
+      tr.style.display = tr.dataset.cari.indexOf(q) === -1 ? 'none' : '';
+    });
+  });
+</script>
+{% endblock %}

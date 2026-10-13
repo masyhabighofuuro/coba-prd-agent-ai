@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Opname {{ op.tanggal|tgl }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h1 class="h4 mb-0">Stock Opname {{ op.tanggal|tgl }}</h1>
+  <a href="{{ url_for('opname_list') }}" class="btn btn-outline-secondary btn-sm">&larr; Semua opname</a>
+</div>
+<p class="mb-1"><strong>Petugas:</strong> {{ op.petugas }}</p>
+{% if op.catatan %}<p class="mb-3"><strong>Catatan:</strong> {{ op.catatan }}</p>{% endif %}
+
+{# Tampilan HP: daftar kartu #}
+<div class="d-md-none">
+  {% for r in rows %}
+  <div class="card app-card mb-2">
+    <div class="card-body">
+      <div class="fw-semibold app-break">{{ r.nama }}{% if r.varian %} ({{ r.varian }}){% endif %}</div>
+      <div class="small text-muted mb-2">{{ r.sku }}</div>
+      <div class="d-flex justify-content-between">
+        <span><span class="text-muted small">Sistem:</span> {{ r.stok_sistem|angka }}</span>
+        <span><span class="text-muted small">Fisik:</span> {{ r.stok_fisik|angka }}</span>
+        <span class="{{ 'text-danger' if r.selisih < 0 else ('text-success' if r.selisih > 0 else 'text-muted') }}">
+          <span class="text-muted small">Selisih:</span> <strong>{{ '+' if r.selisih > 0 }}{{ r.selisih }}</strong>
+        </span>
+      </div>
+      {% if r.keterangan %}<div class="small text-muted mt-2 app-break">Ket: {{ r.keterangan }}</div>{% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="card app-card">
+    <div class="app-list-empty">
+      <div class="app-empty-title">Tidak ada item</div>
+      <div class="small">Opname ini belum memiliki item.</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# Tampilan >= md: tabel #}
+<div class="card border-0 shadow-sm d-none d-md-block">
+  <div class="table-responsive">
+    <table class="table table-sm mb-0 align-middle">
+      <thead class="table-light">
+        <tr><th>Barang</th><th class="text-end">Stok Sistem</th><th class="text-end">Stok Fisik</th>
+            <th class="text-end">Selisih</th><th>Keterangan</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.nama }}{% if r.varian %} ({{ r.varian }}){% endif %} <span class="text-muted small">{{ r.sku }}</span></td>
+          <td class="text-end">{{ r.stok_sistem|angka }}</td>
+          <td class="text-end">{{ r.stok_fisik|angka }}</td>
+          <td class="text-end {{ 'text-danger' if r.selisih < 0 else ('text-success' if r.selisih > 0 else 'text-muted') }}">
+            {{ '+' if r.selisih > 0 }}{{ r.selisih }}
+          </td>
+          <td>{{ r.keterangan or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

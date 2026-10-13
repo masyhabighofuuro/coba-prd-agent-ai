@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Batalkan Transaksi{% endblock %}
+{% block bottom_nav %}{% endblock %}
+{% block content %}
+{% set f = form if form else {} %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-semibold">Batalkan Transaksi #{{ t.id }}</div>
+      <div class="card-body">
+        <table class="table table-sm table-borderless mb-3">
+          <tbody>
+            <tr><th class="text-muted fw-normal" style="width:40%">Tanggal</th><td>{{ t.tanggal|tgl }}</td></tr>
+            <tr><th class="text-muted fw-normal">Barang</th><td class="app-break">{{ t.item_nama }} <span class="text-muted small">({{ t.item_sku }})</span></td></tr>
+            <tr><th class="text-muted fw-normal">Jenis</th><td>{{ 'Masuk' if t.jenis == 'IN' else 'Keluar' }}</td></tr>
+            <tr><th class="text-muted fw-normal">Jumlah</th><td>{{ t.jumlah|angka }} {{ t.item_satuan }}</td></tr>
+            <tr><th class="text-muted fw-normal">Pengirim &rarr; Penerima</th><td class="app-break">{{ t.pengirim or '-' }} &rarr; {{ t.penerima or '-' }}</td></tr>
+            <tr><th class="text-muted fw-normal">Dicatat oleh</th><td class="app-break">{{ t.dicatat_oleh }}</td></tr>
+          </tbody>
+        </table>
+
+        <div class="alert alert-warning small">
+          Transaksi asli <strong>tidak dihapus</strong>. Sistem mencatat transaksi lawannya
+          ({{ 'barang keluar' if t.jenis == 'IN' else 'barang masuk' }} {{ t.jumlah|angka }} {{ t.item_satuan }})
+          sehingga stok kembali seperti sebelum transaksi ini.
+        </div>
+
+        <form method="post" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-3">
+            <label for="dicatat_oleh" class="form-label">Dibatalkan oleh <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="dicatat_oleh" name="dicatat_oleh"
+                   value="{{ f.get('dicatat_oleh', '') }}" required>
+          </div>
+          <div class="mb-3">
+            <label for="alasan" class="form-label">Alasan pembatalan <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="alasan" name="alasan" rows="2"
+                      placeholder="Mis. salah ketik jumlah" required>{{ f.get('alasan', '') }}</textarea>
+          </div>
+          <div class="app-form-actions">
+            <button type="submit" class="btn btn-warning">Batalkan Transaksi</button>
+            <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">Kembali</a>
+          </div>
+          <div class="app-actions-spacer" aria-hidden="true"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

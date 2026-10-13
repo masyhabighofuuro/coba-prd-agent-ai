@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import opname_card %}
+{% block title %}Stock Opname{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h1 class="h4 mb-0">Stock Opname</h1>
+  <a href="{{ url_for('opname_new') }}" class="btn btn-primary btn-sm">+ Opname Baru</a>
+</div>
+
+{# Tampilan HP: daftar kartu #}
+<div class="d-md-none">
+  {% for o in opnames %}
+    {{ opname_card(o) }}
+  {% else %}
+    <div class="card app-card">
+      <div class="app-list-empty">
+        <div class="app-empty-title">Belum ada stock opname</div>
+        <div class="small">Mulai dengan menekan "+ Opname Baru".</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{# Tampilan >= md: tabel #}
+<div class="card border-0 shadow-sm d-none d-md-block">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Tanggal</th><th>Petugas</th><th class="text-end">Item dicek</th><th class="text-end">Selisih</th>
+            <th>Catatan</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for o in opnames %}
+        <tr>
+          <td class="text-nowrap">{{ o.tanggal|tgl }}</td>
+          <td>{{ o.petugas }}</td>
+          <td class="text-end">{{ o.total_item }}</td>
+          <td class="text-end">
+            {% if o.jumlah_selisih %}<span class="badge bg-warning text-dark">{{ o.jumlah_selisih }} item</span>
+            {% else %}<span class="text-muted">0</span>{% endif %}
+          </td>
+          <td>{{ o.catatan or '-' }}</td>
+          <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('opname_detail', opname_id=o.id) }}">Detail</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-4">Belum ada stock opname.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

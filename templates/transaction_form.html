@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Catat Barang Masuk' if jenis == 'IN' else 'Catat Barang Keluar' }}{% endblock %}
+{% block bottom_nav %}{% endblock %}
+{% block content %}
+{% set f = form if form else {} %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-semibold">
+        {{ 'Barang Masuk' if jenis == 'IN' else 'Barang Keluar' }}
+      </div>
+      <div class="card-body">
+        {% if jenis == 'IN' %}
+        <div class="alert alert-light border small">Stok akan <strong>bertambah</strong> otomatis.</div>
+        {% else %}
+        <div class="alert alert-light border small">Stok akan <strong>berkurang</strong> otomatis. Jumlah tidak boleh melebihi stok tersedia.</div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="item_id" class="form-label">Barang <span class="text-danger">*</span></label>
+              <select id="item_id" name="item_id" class="form-select" data-searchable>
+                <option value="">-- Pilih barang --</option>
+                {% for i in items %}
+                <option value="{{ i.id }}" {{ 'selected' if (f.get('item_id') or preselect) == i.id|string }}>
+                  {{ i.sku }} &mdash; {{ i.nama }}{% if i.varian %} ({{ i.varian }}){% endif %} [stok: {{ i.stok }}]
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="jumlah" class="form-label">Jumlah <span class="text-danger">*</span></label>
+              <input type="number" inputmode="numeric" min="1" class="form-control" id="jumlah" name="jumlah"
+                     value="{{ f.get('jumlah', '') }}" required>
+            </div>
+            <div class="col-md-4">
+              <label for="tanggal" class="form-label">Tanggal <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="tanggal" name="tanggal"
+                     value="{{ f.get('tanggal', today) }}" required>
+            </div>
+            <div class="col-md-4">
+              <label for="dicatat_oleh" class="form-label">Dicatat Oleh <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="dicatat_oleh" name="dicatat_oleh"
+                     value="{{ f.get('dicatat_oleh', '') }}" placeholder="Nama orang yang input" required>
+            </div>
+            <div class="col-md-6">
+              <label for="pengirim" class="form-label">Pengirim <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="pengirim" name="pengirim"
+                     value="{{ f.get('pengirim', '') }}" placeholder="{{ 'Supplier / asal barang' if jenis == 'IN' else 'Yang mengirim keluar' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="penerima" class="form-label">Penerima <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="penerima" name="penerima"
+                     value="{{ f.get('penerima', '') }}" placeholder="{{ 'Yang menerima barang' if jenis == 'IN' else 'Buyer / pihak yang dibeli' }}" required>
+            </div>
+            {% if jenis == 'OUT' %}
+            <div class="col-12">
+              <label for="penjual" class="form-label">Penjual <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="penjual" name="penjual"
+                     value="{{ f.get('penjual', '') }}" placeholder="Nama penjual" required>
+            </div>
+            {% endif %}
+            <div class="col-12">
+              <label for="catatan" class="form-label">Catatan</label>
+              <textarea class="form-control" id="catatan" name="catatan" rows="2">{{ f.get('catatan', '') }}</textarea>
+            </div>
+          </div>
+
+          <div class="app-form-actions">
+            <button type="submit" class="btn {{ 'btn-success' if jenis == 'IN' else 'btn-danger' }}">Simpan</button>
+            <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">Batal</a>
+          </div>
+          <div class="app-actions-spacer" aria-hidden="true"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

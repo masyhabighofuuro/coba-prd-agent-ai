@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badges, void_btn, trx_card %}
+{% block title %}Riwayat Transaksi{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Riwayat Transaksi</h1>
+
+{# Tombol filter (hanya HP) #}
+<button class="btn btn-outline-secondary w-100 d-md-none mb-2" type="button"
+        data-bs-toggle="collapse" data-bs-target="#filterRiwayat" aria-expanded="false" aria-controls="filterRiwayat">
+  Filter
+</button>
+
+<form method="get" action="{{ url_for('history') }}" id="filterRiwayat" class="collapse d-md-block row g-2 mb-3">
+  <div class="col-6 col-md-2">
+    <label for="fJenis" class="form-label d-md-none">Jenis</label>
+    <select id="fJenis" name="jenis" class="form-select" onchange="this.form.submit()">
+      <option value="">Semua jenis</option>
+      <option value="IN" {{ 'selected' if jenis == 'IN' }}>Masuk</option>
+      <option value="OUT" {{ 'selected' if jenis == 'OUT' }}>Keluar</option>
+    </select>
+  </div>
+  <div class="col-6 col-md-3">
+    <label for="fBarang" class="form-label d-md-none">Barang</label>
+    <select id="fBarang" name="item_id" class="form-select" onchange="this.form.submit()">
+      <option value="">Semua barang</option>
+      {% for i in items %}
+      <option value="{{ i.id }}" {{ 'selected' if item_id|string == i.id|string }}>{{ i.sku }} - {{ i.nama }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-6 col-md-2">
+    <label for="fDari" class="form-label d-md-none">Dari tanggal</label>
+    <input type="date" class="form-control" id="fDari" name="dari" value="{{ dari }}" title="Dari tanggal">
+  </div>
+  <div class="col-6 col-md-2">
+    <label for="fSampai" class="form-label d-md-none">Sampai tanggal</label>
+    <input type="date" class="form-control" id="fSampai" name="sampai" value="{{ sampai }}" title="Sampai tanggal">
+  </div>
+  <div class="col-12 col-md-2">
+    <label for="fCari" class="form-label d-md-none">Pencarian</label>
+    <input type="search" class="form-control" id="fCari" name="q" value="{{ q }}" placeholder="Pengirim/penerima/penjual/pencatat...">
+  </div>
+  <div class="col-12 col-md-1 d-grid">
+    <button class="btn btn-outline-secondary" type="submit">Filter</button>
+  </div>
+</form>
+
+{# Tampilan HP: daftar kartu #}
+<div class="d-md-none">
+  {% for t in transactions %}
+    {{ trx_card(t) }}
+  {% else %}
+    <div class="card app-card">
+      <div class="app-list-empty">
+        <div class="app-empty-title">Belum ada transaksi</div>
+        <div class="small">Tidak ada transaksi yang cocok dengan filter ini.</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{# Tampilan >= md: tabel #}
+<div class="card border-0 shadow-sm d-none d-md-block">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Tanggal</th><th>Barang</th><th>Jenis</th><th class="text-end">Jumlah</th>
+          <th>Pengirim</th><th>Penerima</th><th>Penjual</th><th>Pencatat</th><th>Catatan</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td class="text-nowrap">{{ t.tanggal|tgl }}<div class="text-muted small">#{{ t.id }}</div></td>
+          <td>
+            <a href="{{ url_for('item_detail', item_id=t.item_id) }}">{{ t.item_nama }}</a>
+            <div class="text-muted small">{{ t.item_sku }}</div>
+          </td>
+          <td>
+            {% if t.jenis == 'IN' %}<span class="badge bg-success">Masuk</span>
+            {% else %}<span class="badge bg-danger">Keluar</span>{% endif %}
+            {{ status_badges(t) }}
+          </td>
+          <td class="text-end">{{ t.jumlah|angka }} {{ t.item_satuan }}</td>
+          <td>{{ t.pengirim or '-' }}</td>
+          <td>{{ t.penerima or '-' }}</td>
+          <td>{{ t.penjual or '-' }}</td>
+          <td>{{ t.dicatat_oleh }}</td>
+          <td>{{ t.catatan or '-' }}</td>
+          <td class="text-nowrap">{{ void_btn(t) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="10" class="text-center text-muted py-4">Tidak ada transaksi yang cocok dengan filter.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="text-muted small mt-2">{{ transactions|length }} transaksi ditampilkan.</p>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% from "_macros.html" import item_card %}
+{% block title %}Daftar Barang{% endblock %}
+
+{% macro sort_link(label, key) %}
+  {% set new_order = 'desc' if (sort == key and order == 'asc') else 'asc' %}
+  <a class="text-decoration-none text-dark" href="{{ url_for('items_list', q=q, kategori=kategori, sort=key, order=new_order) }}">
+    {{ label }}
+    {% if sort == key %}<span class="text-muted">{{ '↑' if order == 'asc' else '↓' }}</span>{% endif %}
+  </a>
+{% endmacro %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h1 class="h4 mb-0">Daftar Barang</h1>
+  <a href="{{ url_for('item_new') }}" class="btn btn-primary btn-sm">+ Tambah Barang</a>
+</div>
+
+{# Tombol filter (hanya HP) #}
+<button class="btn btn-outline-secondary w-100 d-md-none mb-2" type="button"
+        data-bs-toggle="collapse" data-bs-target="#filterBarang" aria-expanded="false" aria-controls="filterBarang">
+  Filter &amp; Urutkan
+</button>
+
+<form method="get" action="{{ url_for('items_list') }}" id="filterBarang" class="collapse d-md-block row g-2 mb-3">
+  <div class="col-12 col-md-6">
+    <label for="cariBarang" class="form-label d-md-none">Cari</label>
+    <input type="search" id="cariBarang" name="q" value="{{ q }}" class="form-control"
+           placeholder="Cari nama / kode / kategori..." autocomplete="off">
+  </div>
+  <div class="col-8 col-md-4">
+    <label for="kategori" class="form-label d-md-none">Kategori</label>
+    <select id="kategori" name="kategori" class="form-select" onchange="this.form.submit()">
+      <option value="">Semua kategori</option>
+      {% for k in kategori_opsi %}
+      <option value="{{ k }}" {{ 'selected' if k == kategori }}>{{ k }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-4 col-md-2 d-grid align-self-md-end">
+    <button class="btn btn-outline-secondary" type="submit">Cari</button>
+  </div>
+  <div class="col-6 d-md-none">
+    <label for="urutBy" class="form-label">Urutkan</label>
+    <select id="urutBy" name="sort" class="form-select" onchange="this.form.submit()">
+      <option value="nama" {{ 'selected' if sort == 'nama' }}>Nama</option>
+      <option value="sku" {{ 'selected' if sort == 'sku' }}>Kode</option>
+      <option value="kategori" {{ 'selected' if sort == 'kategori' }}>Kategori</option>
+      <option value="stok" {{ 'selected' if sort == 'stok' }}>Stok</option>
+    </select>
+  </div>
+  <div class="col-6 d-md-none">
+    <label for="arahBy" class="form-label">Arah</label>
+    <select id="arahBy" name="order" class="form-select" onchange="this.form.submit()">
+      <option value="asc" {{ 'selected' if order == 'asc' }}>Naik (A–Z)</option>
+      <option value="desc" {{ 'selected' if order == 'desc' }}>Turun (Z–A)</option>
+    </select>
+  </div>
+</form>
+
+{# Tampilan HP: daftar kartu #}
+<div class="d-md-none">
+  {% for i in items %}
+    {{ item_card(i) }}
+  {% else %}
+    <div class="card app-card">
+      <div class="app-list-empty">
+        <div class="app-empty-title">Tidak ada barang yang cocok</div>
+        <div class="small">Coba ubah kata kunci atau filter kategori.</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{# Tampilan >= md: tabel #}
+<div class="card border-0 shadow-sm d-none d-md-block">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>{{ sort_link('Kode', 'sku') }}</th>
+          <th>{{ sort_link('Nama', 'nama') }}</th>
+          <th>{{ sort_link('Kategori', 'kategori') }}</th>
+          <th>{{ sort_link('Varian', 'varian') }}</th>
+          <th class="text-end">{{ sort_link('Stok', 'stok') }}</th>
+          <th>Satuan</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in items %}
+        <tr>
+          <td><a href="{{ url_for('item_detail', item_id=i.id) }}">{{ i.sku }}</a></td>
+          <td><a href="{{ url_for('item_detail', item_id=i.id) }}">{{ i.nama }}</a></td>
+          <td>{{ i.kategori }}</td>
+          <td>{{ i.varian or '-' }}</td>
+          <td class="text-end fw-semibold">{{ i.stok|angka }}</td>
+          <td>{{ i.satuan }}</td>
+          <td>
+            {% if i.stok <= i.stok_min %}
+            <span class="badge bg-danger">Stok menipis</span>
+            {% else %}
+            <span class="badge bg-success-subtle text-success-emphasis">Aman</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">Tidak ada barang yang cocok.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="text-muted small mt-2">{{ items|length }} barang ditampilkan.</p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var inputCari = document.getElementById('cariBarang');
+  if (inputCari) {
+    var timer = null;
+    inputCari.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () { inputCari.form.submit(); }, 400);
+    });
+  }
+</script>
+{% endblock %}

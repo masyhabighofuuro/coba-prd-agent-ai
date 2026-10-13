@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+tests/
+app.db
+data/
+.git/
+README.md

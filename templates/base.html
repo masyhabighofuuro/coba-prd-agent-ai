@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#212529">
+  <title>{% block title %}Merchandise{% endblock %} &middot; Catat Barang</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='app.css') }}" rel="stylesheet">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% if app_username %}
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark app-navbar mb-3" aria-label="Navigasi atas">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('index') }}">Catat Barang</a>
+
+      <ul class="navbar-nav me-auto mb-0 d-none d-lg-flex">
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint in ('items_list', 'item_new', 'item_edit', 'item_detail') }}" href="{{ url_for('items_list') }}">Barang</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint == 'trans_in' }}" href="{{ url_for('trans_in') }}">Barang Masuk</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint == 'trans_out' }}" href="{{ url_for('trans_out') }}">Barang Keluar</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint in ('history', 'trans_void') }}" href="{{ url_for('history') }}">Riwayat</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint in ('opname_list', 'opname_new', 'opname_detail') }}" href="{{ url_for('opname_list') }}">Opname</a>
+        </li>
+      </ul>
+
+      <form class="ms-auto ms-lg-0" method="post" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-outline-light btn-sm app-logout" type="submit">
+          Keluar<span class="d-none d-lg-inline"> ({{ app_username }})</span>
+        </button>
+      </form>
+    </div>
+  </nav>
+  {% endif %}
+
+  <main class="container app-main pb-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="app-flash">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+          </div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block bottom_nav %}
+  {% if app_username %}
+  <nav class="app-bottomnav d-lg-none" aria-label="Navigasi bawah">
+    <a class="app-bottomnav-item {{ 'active' if request.endpoint in ('items_list', 'item_new', 'item_edit', 'item_detail') }}" href="{{ url_for('items_list') }}">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184ZM8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113ZM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.239ZM7.5 6.838 1 4.239v7.923l6.5 2.6V6.838Z"/></svg>
+      <span>Barang</span>
+    </a>
+    <a class="app-bottomnav-item {{ 'active' if request.endpoint == 'trans_in' }}" href="{{ url_for('trans_in') }}">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1h-2Z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3Z"/></svg>
+      <span>Masuk</span>
+    </a>
+    <a class="app-bottomnav-item {{ 'active' if request.endpoint == 'trans_out' }}" href="{{ url_for('trans_out') }}">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1h-2Z"/><path d="M8 0a.5.5 0 0 1 .5.5v8.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 9.293V.5A.5.5 0 0 1 8 0Z"/></svg>
+      <span>Keluar</span>
+    </a>
+    <a class="app-bottomnav-item {{ 'active' if request.endpoint in ('history', 'trans_void') }}" href="{{ url_for('history') }}">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5Z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16Zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/></svg>
+      <span>Riwayat</span>
+    </a>
+    <a class="app-bottomnav-item {{ 'active' if request.endpoint in ('opname_list', 'opname_new', 'opname_detail') }}" href="{{ url_for('opname_list') }}">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11.354 4.646a.5.5 0 0 1 0 .708l-5 5a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L6 9.293l4.646-4.647a.5.5 0 0 1 .708 0Z"/><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1Z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3Zm-3-.5A1.5 1.5 0 0 0 5 2v1a1.5 1.5 0 0 0 1.5 1.5h3A1.5 1.5 0 0 0 11 3V2a1.5 1.5 0 0 0-1.5-1.5h-3Z"/></svg>
+      <span>Opname</span>
+    </a>
+  </nav>
+  {% endif %}
+  {% endblock %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script>
+    document.querySelectorAll('select[data-searchable]').forEach(function (el) {
+      new TomSelect(el, { placeholder: 'Cari dan pilih barang...', allowEmptyOption: true, maxOptions: 500 });
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

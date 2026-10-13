@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badges, void_btn, trx_card %}
+{% block title %}{{ item.nama }}{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3 app-break">{{ item.nama }}
+  {% if item.varian %}<span class="text-muted">({{ item.varian }})</span>{% endif %}
+</h1>
+
+{# Aksi utama: lebar penuh di HP, sejajar di >= md #}
+<div class="row g-2 mb-3">
+  <div class="col-6 col-md-auto d-grid">
+    <a href="{{ url_for('item_edit', item_id=item.id) }}" class="btn btn-outline-primary">Ubah</a>
+  </div>
+  <div class="col-6 col-md-auto d-grid">
+    <form method="post" action="{{ url_for('item_delete', item_id=item.id) }}"
+          onsubmit="return confirm('Hapus barang {{ item.nama }}? Riwayat transaksi tetap tersimpan.')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger w-100">Hapus</button>
+    </form>
+  </div>
+  <div class="col-6 col-md-auto d-grid">
+    <a href="{{ url_for('trans_in', item_id=item.id) }}" class="btn btn-success">Catat Masuk</a>
+  </div>
+  <div class="col-6 col-md-auto d-grid">
+    <a href="{{ url_for('trans_out', item_id=item.id) }}" class="btn btn-danger">Catat Keluar</a>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Kode</div><div class="fw-semibold app-break">{{ item.sku }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Kategori</div><div class="fw-semibold app-break">{{ item.kategori }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Stok Saat Ini</div>
+        <div class="fw-semibold">
+          {{ item.stok|angka }} {{ item.satuan }}
+          {% if item.stok <= item.stok_min %}<span class="badge bg-danger ms-1">Stok menipis</span>{% endif %}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Stok Minimum</div><div class="fw-semibold">{{ item.stok_min|angka }} {{ item.satuan }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Harga Jual</div><div class="fw-semibold">{{ item.harga|rupiah }}</div>
+      </div>
+      <div class="col-6 col-md-9">
+        <div class="text-muted small">Catatan</div><div class="app-break">{{ item.catatan or '-' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="h5 mb-2">Riwayat Transaksi Barang Ini</h2>
+
+{# Tampilan HP: daftar kartu #}
+<div class="d-md-none">
+  {% for t in history %}
+    {{ trx_card(t) }}
+  {% else %}
+    <div class="card app-card">
+      <div class="app-list-empty">
+        <div class="app-empty-title">Belum ada transaksi</div>
+        <div class="small">Catat barang masuk atau keluar untuk barang ini.</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{# Tampilan >= md: tabel #}
+<div class="card border-0 shadow-sm d-none d-md-block">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Tanggal</th><th>Jenis</th><th class="text-end">Jumlah</th>
+          <th>Pengirim</th><th>Penerima</th><th>Penjual</th><th>Pencatat</th><th>Catatan</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in history %}
+        <tr>
+          <td class="text-nowrap">{{ t.tanggal|tgl }}<div class="text-muted small">#{{ t.id }}</div></td>
+          <td>
+            {% if t.jenis == 'IN' %}<span class="badge bg-success">Masuk</span>
+            {% else %}<span class="badge bg-danger">Keluar</span>{% endif %}
+            {{ status_badges(t) }}
+          </td>
+          <td class="text-end">{{ t.jumlah|angka }}</td>
+          <td>{{ t.pengirim or '-' }}</td>
+          <td>{{ t.penerima or '-' }}</td>
+          <td>{{ t.penjual or '-' }}</td>
+          <td>{{ t.dicatat_oleh }}</td>
+          <td>{{ t.catatan or '-' }}</td>
+          <td class="text-nowrap">{{ void_btn(t) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted py-4">Belum ada transaksi untuk barang ini.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

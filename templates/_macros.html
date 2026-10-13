@@ -1,0 +1,94 @@
+{% macro status_badges(t) %}
+  {% if t.reversal_of %}<span class="badge bg-secondary" title="Koreksi dari transaksi #{{ t.reversal_of }}">Pembatalan #{{ t.reversal_of }}</span>{% endif %}
+  {% if t.opname_id %}<a class="badge bg-warning text-dark text-decoration-none" href="{{ url_for('opname_detail', opname_id=t.opname_id) }}">Opname</a>{% endif %}
+  {% if t.voided_by %}<span class="badge bg-dark" title="Dibatalkan oleh transaksi #{{ t.voided_by }}">Dibatalkan</span>{% endif %}
+{% endmacro %}
+
+{% macro void_btn(t) %}
+  {% if not (t.voided_by or t.reversal_of or t.opname_id) %}
+  <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('trans_void', trans_id=t.id) }}">Batalkan</a>
+  {% endif %}
+{% endmacro %}
+
+{# Badge jenis transaksi (Masuk/Keluar). #}
+{% macro jenis_badge(jenis) %}
+  {% if jenis == 'IN' %}<span class="badge bg-success">Masuk</span>
+  {% else %}<span class="badge bg-danger">Keluar</span>{% endif %}
+{% endmacro %}
+
+{# Kartu transaksi untuk tampilan HP (daftar kartu). t = baris transaksi. #}
+{% macro trx_card(t, show_void=true) %}
+<div class="card app-card mb-2">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-start gap-2">
+      <div class="min-w-0">
+        <a class="fw-semibold text-decoration-none d-block app-break" href="{{ url_for('item_detail', item_id=t.item_id) }}">{{ t.item_nama }}</a>
+        <div class="small text-muted app-break">{{ t.item_sku }} &middot; {{ t.tanggal|tgl }} <span class="text-muted">#{{ t.id }}</span></div>
+      </div>
+      <div class="text-end flex-shrink-0">
+        {{ jenis_badge(t.jenis) }}
+        <div class="fw-semibold">{{ t.jumlah|angka }} {{ t.item_satuan }}</div>
+      </div>
+    </div>
+
+    <div class="small text-muted mt-1 app-break">
+      {% if t.pengirim %}Dari: {{ t.pengirim }}{% endif %}
+      {% if t.penerima %}{% if t.pengirim %} &middot; {% endif %}Ke: {{ t.penerima }}{% endif %}
+      {% if t.penjual %}<div>Penjual: {{ t.penjual }}</div>{% endif %}
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-1 mt-1">{{ status_badges(t) }}</div>
+
+    <div class="d-flex justify-content-between align-items-center mt-2 gap-2">
+      <span class="small text-muted app-break">Pencatat: {{ t.dicatat_oleh }}</span>
+      {% if show_void %}{{ void_btn(t) }}{% endif %}
+    </div>
+    {% if t.catatan %}<div class="small text-muted mt-1 app-break">{{ t.catatan }}</div>{% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{# Kartu barang untuk tampilan HP. i = baris item. #}
+{% macro item_card(i) %}
+<div class="card app-card mb-2">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-start gap-2">
+      <a class="fw-semibold text-decoration-none app-break" href="{{ url_for('item_detail', item_id=i.id) }}">{{ i.nama }}</a>
+      {% if i.stok <= i.stok_min %}
+      <span class="badge bg-danger flex-shrink-0">Stok menipis</span>
+      {% else %}
+      <span class="badge bg-success-subtle text-success-emphasis flex-shrink-0">Aman</span>
+      {% endif %}
+    </div>
+    <div class="small text-muted app-break">{{ i.sku }} &middot; {{ i.kategori }}{% if i.varian %} &middot; {{ i.varian }}{% endif %}</div>
+    <div class="d-flex justify-content-between align-items-end mt-1">
+      <span>Stok: <strong>{{ i.stok|angka }}</strong> {{ i.satuan }}</span>
+      <span class="small text-muted">min {{ i.stok_min|angka }}</span>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{# Kartu ringkasan stock opname untuk tampilan HP. o = baris opname. #}
+{% macro opname_card(o) %}
+<div class="card app-card mb-2">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-start gap-2">
+      <div class="min-w-0">
+        <div class="fw-semibold">{{ o.tanggal|tgl }}</div>
+        <div class="small text-muted app-break">Petugas: {{ o.petugas }}</div>
+      </div>
+      <a class="btn btn-sm btn-outline-secondary flex-shrink-0" href="{{ url_for('opname_detail', opname_id=o.id) }}">Detail</a>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-2">
+      <span class="badge bg-light text-dark border">{{ o.total_item }} item dicek</span>
+      {% if o.jumlah_selisih %}
+      <span class="badge bg-warning text-dark">{{ o.jumlah_selisih }} item selisih</span>
+      {% else %}
+      <span class="badge bg-success-subtle text-success-emphasis">Tidak ada selisih</span>
+      {% endif %}
+    </div>
+    {% if o.catatan %}<div class="small text-muted mt-2 app-break">{{ o.catatan }}</div>{% endif %}
+  </div>
+</div>
+{% endmacro %}

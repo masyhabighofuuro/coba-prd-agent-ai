@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% from "_macros.html" import trx_card %}
+{% block title %}Beranda{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Beranda</h1>
+
+<div class="row g-2 mb-3">
+  <div class="col-6 d-grid">
+    <a href="{{ url_for('trans_in') }}" class="btn btn-success btn-lg">+ Barang Masuk</a>
+  </div>
+  <div class="col-6 d-grid">
+    <a href="{{ url_for('trans_out') }}" class="btn btn-danger btn-lg">- Barang Keluar</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Jenis Barang</div>
+        <div class="fs-3 fw-semibold">{{ total_item }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Total Stok</div>
+        <div class="fs-3 fw-semibold">{{ total_stok|angka }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Stok Menipis</div>
+        <div class="fs-3 fw-semibold {{ 'text-danger' if low_stock else '' }}">{{ low_stock }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Transaksi Terbaru</div>
+
+      {# Tampilan HP: daftar kartu #}
+      <div class="card-body py-2 d-md-none">
+        {% for t in recent %}
+          {{ trx_card(t, show_void=false) }}
+        {% else %}
+          <div class="app-list-empty">
+            <div class="app-empty-title">Belum ada transaksi</div>
+            <div class="small">Transaksi masuk atau keluar akan muncul di sini.</div>
+          </div>
+        {% endfor %}
+      </div>
+
+      {# Tampilan >= md: tabel #}
+      <div class="table-responsive d-none d-md-block">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Tanggal</th><th>Barang</th><th>Jenis</th><th class="text-end">Jumlah</th><th>Pencatat</th></tr>
+          </thead>
+          <tbody>
+            {% for t in recent %}
+            <tr>
+              <td class="text-nowrap">{{ t.tanggal|tgl }}</td>
+              <td><a href="{{ url_for('item_detail', item_id=t.item_id) }}">{{ t.item_nama }}</a></td>
+              <td>
+                {% if t.jenis == 'IN' %}<span class="badge bg-success">Masuk</span>
+                {% else %}<span class="badge bg-danger">Keluar</span>{% endif %}
+              </td>
+              <td class="text-end">{{ t.jumlah|angka }} {{ t.item_satuan }}</td>
+              <td>{{ t.dicatat_oleh }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-3">Belum ada transaksi.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-footer bg-white">
+        <a href="{{ url_for('history') }}" class="small">Lihat semua riwayat &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Barang Stok Menipis</div>
+      <ul class="list-group list-group-flush">
+        {% for i in low_items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center gap-2 flex-wrap">
+          <a class="app-break" href="{{ url_for('item_detail', item_id=i.id) }}">{{ i.nama }}{% if i.varian %} ({{ i.varian }}){% endif %}</a>
+          <span class="badge bg-danger">{{ i.stok|angka }} / min {{ i.stok_min|angka }}</span>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">Tidak ada barang yang menipis.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% if show_modal %}
+<div class="modal" id="modalOpname" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning-subtle">
+        <h5 class="modal-title">Stock Opname Terakhir</h5>
+      </div>
+      {% if summary %}
+      <div class="modal-body">
+        <p class="mb-1"><strong>Tanggal:</strong> {{ summary.opname.tanggal|tgl }}</p>
+        <p class="mb-1"><strong>Petugas:</strong> {{ summary.opname.petugas }}</p>
+        <p class="mb-3"><strong>Ringkasan:</strong> {{ summary.total_item }} item dicek, {{ summary.jumlah_selisih }} item selisih.</p>
+
+        {% if summary.rows %}
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered align-middle">
+            <thead class="table-light">
+              <tr><th>Barang</th><th class="text-end">Stok Sistem</th><th class="text-end">Stok Fisik</th><th class="text-end">Selisih</th><th>Keterangan</th></tr>
+            </thead>
+            <tbody>
+              {% for r in summary.rows %}
+              <tr>
+                <td>{{ r.nama }} <span class="text-muted small">({{ r.sku }})</span></td>
+                <td class="text-end">{{ r.stok_sistem }}</td>
+                <td class="text-end">{{ r.stok_fisik }}</td>
+                <td class="text-end {{ 'text-danger' if r.selisih < 0 else 'text-success' }}">
+                  {{ '+' if r.selisih > 0 }}{{ r.selisih }}
+                </td>
+                <td>{{ r.keterangan or '-' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted">Tidak ada item yang selisih pada opname ini.</p>
+        {% endif %}
+
+        {% if summary.opname.catatan %}
+        <p class="mb-0"><strong>Catatan:</strong> {{ summary.opname.catatan }}</p>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="modal-body">
+        <p class="mb-0">Belum ada data stock opname.</p>
+      </div>
+      {% endif %}
+      <div class="modal-footer">
+        <form method="post" action="{{ url_for('ack_opname') }}" class="w-100">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-primary w-100">Saya sudah baca</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if show_modal %}
+<script>
+  var modalEl = document.getElementById('modalOpname');
+  var modalOpname = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false });
+  modalOpname.show();
+</script>
+{% endif %}
+{% endblock %}

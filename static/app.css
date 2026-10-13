@@ -1,0 +1,344 @@
+/* ===========================================================================
+   app.css - gaya mobile-first untuk aplikasi Catat Barang.
+   Aturan utama:
+   - Layar 360px ke atas tanpa scroll horizontal.
+   - Target sentuh minimal 44x44px, font input minimal 16px (anti zoom iOS).
+   - Satu kolom di HP, kolom bertambah di breakpoint md/lg (992px).
+   - Menghormati prefers-reduced-motion.
+   =========================================================================== */
+
+:root {
+  --app-bottomnav-h: 58px;
+  --app-radius: 0.75rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #f5f6f8;
+  overflow-x: clip; /* jaga-jaga, tanpa mematikan sticky */
+}
+
+/* Kata panjang (nama barang) tidak memaksa lebar halaman melar */
+.app-break {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ---------------------------------------------------------------------------
+   Navbar atas
+   --------------------------------------------------------------------------- */
+.app-navbar {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+.app-navbar .navbar-brand {
+  font-weight: 600;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.app-navbar .nav-link {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.app-navbar .nav-link.active {
+  font-weight: 600;
+}
+.app-logout {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ---------------------------------------------------------------------------
+   Area konten + ruang untuk bottom nav di HP
+   --------------------------------------------------------------------------- */
+.app-main {
+  padding-bottom: calc(var(--app-bottomnav-h) + env(safe-area-inset-bottom) + 1.5rem);
+}
+body.app-no-bottomnav .app-main {
+  padding-bottom: 6rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Bottom navigation (hanya HP / < lg)
+   --------------------------------------------------------------------------- */
+.app-bottomnav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1030;
+  display: flex;
+  background: #212529;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.18);
+}
+.app-bottomnav-item {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: var(--app-bottomnav-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0.35rem 0.1rem;
+  color: #adb5bd;
+  text-decoration: none;
+  font-size: 0.7rem;
+  line-height: 1.05;
+  -webkit-tap-highlight-color: transparent;
+}
+.app-bottomnav-item span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-bottomnav-item svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.app-bottomnav-item.active,
+.app-bottomnav-item:active {
+  color: #fff;
+}
+.app-bottomnav-item.active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 22%;
+  right: 22%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--bs-primary, #0d6efd);
+}
+
+/* ---------------------------------------------------------------------------
+   Tombol aksi form: mengambang di bawah pada HP, normal di >= lg
+   --------------------------------------------------------------------------- */
+.app-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+.app-form-actions .btn {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-actions-spacer {
+  display: none;
+}
+
+@media (max-width: 991.98px) {
+  .app-form-actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1035;
+    margin: 0;
+    padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
+    background: var(--bs-body-bg, #fff);
+    border-top: 1px solid var(--bs-border-color, #dee2e6);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+  }
+  .app-form-actions .btn-primary,
+  .app-form-actions .btn-success,
+  .app-form-actions .btn-danger,
+  .app-form-actions .btn-warning {
+    flex: 1 1 auto;
+  }
+  .app-actions-spacer {
+    display: block;
+    height: 72px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Kontrol form: nyaman disentuh & mencegah zoom otomatis iOS
+   --------------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+  .form-control,
+  .form-select,
+  .form-control-sm,
+  textarea.form-control,
+  .input-group > .form-control,
+  .input-group > .form-select {
+    font-size: 1rem;
+  }
+  .form-control,
+  .form-select {
+    min-height: 46px;
+    padding: 0.5rem 0.75rem;
+  }
+  textarea.form-control {
+    min-height: auto;
+  }
+  .btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-sm {
+    min-height: 40px;
+  }
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+/* Tom Select: nyaman di layar sentuh */
+.ts-wrapper .ts-control {
+  min-height: 46px;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  padding: 0.35rem 0.75rem;
+}
+.ts-wrapper .ts-control > input {
+  font-size: 1rem !important;
+}
+@media (max-width: 991.98px) {
+  .ts-dropdown .option,
+  .ts-dropdown .optgroup-header {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Kartu daftar (pengganti tabel di HP)
+   --------------------------------------------------------------------------- */
+.app-card {
+  border: 0;
+  border-radius: var(--app-radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.app-card .card-body {
+  padding: 0.75rem 0.85rem;
+}
+.app-list-empty {
+  text-align: center;
+  color: var(--bs-secondary-color, #6c757d);
+  padding: 2rem 1rem;
+}
+.app-list-empty .app-empty-title {
+  font-weight: 600;
+  color: var(--bs-body-color, #212529);
+  margin-bottom: 0.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Tabel opname: di HP berubah menjadi kartu per barang (satu markup).
+   Kelas dipakai di opname_form.html.
+   --------------------------------------------------------------------------- */
+@media (max-width: 767.98px) {
+  .app-opname-table {
+    display: block;
+    border: 0;
+  }
+  .app-opname-table thead {
+    display: none;
+  }
+  .app-opname-table tbody {
+    display: block;
+  }
+  .app-opname-table tr {
+    display: block;
+    background: #fff;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: var(--app-radius);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+  .app-opname-table td {
+    display: block;
+    width: 100%;
+    border: 0;
+    padding: 0.25rem 0;
+    text-align: left !important;
+  }
+  .app-opname-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--bs-secondary-color, #6c757d);
+    margin-bottom: 0.15rem;
+  }
+  .app-opname-table td.app-opname-nama {
+    font-weight: 600;
+    font-size: 1.02rem;
+    padding-bottom: 0.35rem;
+  }
+  .app-opname-table td.app-opname-nama::before {
+    display: none;
+  }
+  .app-opname-table input.fisik {
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 0.6rem 0.75rem;
+    min-height: 56px;
+  }
+  .app-opname-table .selisih {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Flash message: jelas, tidak menggeser tata letak secara kasar
+   --------------------------------------------------------------------------- */
+.alert {
+  border-radius: var(--app-radius);
+}
+.alert-dismissible {
+  padding-right: 3rem;
+}
+
+/* Modal opname: tombol konfirmasi selalu terlihat */
+.modal .modal-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--bs-body-bg, #fff);
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+/* Layar sangat sempit */
+@media (max-width: 400px) {
+  .app-main {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Hormati pengguna yang mematikan animasi
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
